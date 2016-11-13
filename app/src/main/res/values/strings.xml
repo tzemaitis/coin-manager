@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <plurals name="coin">
+        <item quantity="one">coin</item>
+        <item quantity="other">coins</item>
+    </plurals>
+
+    <plurals name="country">
+        <item quantity="one">country</item>
+        <item quantity="other">countries</item>
+    </plurals>
+
+    <string name="error_failed_to_create_file">Failed to create file</string>
+    <string name="error_failed_to_open_file">Failed to open file</string>
+
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="app_name">Coin Album</string>
+    <string name="action_add_coin">Add Coin</string>
+    <string name="action_edit_coin">Edit Coin</string>
+
+    <string name="new_coin">New Coin</string>
+    <string name="edit_coin">Edit Coin</string>
+
+    <string name="select_years">Select Years</string>
+
+    <string name="coin_list_footer">%1$d %2$s from %3$d %4$s</string>
+
+    <string name="coin_name">Coin name</string>
+    <string name="country">Country</string>
+    <string name="years">Years</string>
+    <string name="composition">Composition</string>
+    <string name="diameter">Diameter</string>
+    <string name="mass">Mass</string>
+    <string name="edge">Edge</string>
+    <string name="mint">Mint</string>
+    <string name="mintage">Mintage</string>
+    <string name="description">Description</string>
+
+</resources>

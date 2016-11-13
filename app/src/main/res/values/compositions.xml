@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="compositions">
+        <item>Copper (Cu)</item>
+        <item>Copper-nickel (CuNi)</item>
+        <item>Brass (CuZn)</item>
+        <item>Bronze (CuSn)</item>
+        <item>Silver (Ag)</item>
+        <item>Silver (AgCu)</item>
+        <item>Bimetal</item>
+        <item>Bimetal (CuSn-CuNi)</item>
+        <item>Bimetal (CuNi-CuSn)</item>
+        <item>Steel (Fe)</item>
+        <item>Zinc (Zn)</item>
+        <item>Nickel (Ni)</item>
+        <item>Tin (Sn)</item>
+        <item>Aluminum (Al)</item>
+        <item>Gold (AuCu)</item>
+        <item>Palladium (Pd)</item>
+    </string-array>
+</resources>
