@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CoinAlbum.iml" filepath="$PROJECT_DIR$/CoinAlbum.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/coin-manager.iml" filepath="$PROJECT_DIR$/coin-manager.iml" />
     </modules>
   </component>
 </project>
-

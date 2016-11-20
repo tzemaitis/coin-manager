@@ -5,8 +5,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import lt.tomzmt.coinalbum.data.entity.Coin;
+import lt.tomzmt.coinalbum.data.entity.Image;
 import lt.tomzmt.coinalbum.data.entity.Link;
-import lt.tomzmt.coinalbum.data.entity.Set;
+import lt.tomzmt.coinalbum.data.entity.CoinSet;
 
 /**
  * Helper class for SQLite database access
@@ -17,9 +18,8 @@ public class DatabaseOpener extends SQLiteOpenHelper {
     private static final String DATA_BASE_FILE_NAME = "coins.db";
 
     private static final int VERSION_1 = 1;
-    private static final int VERSION_2 = 2;
 
-    private static final int CURRENT_VERSION = VERSION_2;
+    private static final int CURRENT_VERSION = VERSION_1;
 
     private  static DatabaseOpener sInstance = null;
 
@@ -37,7 +37,7 @@ public class DatabaseOpener extends SQLiteOpenHelper {
      * Opens writable database
      * @return SQLiteDatabase instance
      */
-    public static SQLiteDatabase openDatabase() {
+    static SQLiteDatabase openDatabase() {
         if (sInstance != null) {
             return sInstance.getWritableDatabase();
         }
@@ -50,7 +50,7 @@ public class DatabaseOpener extends SQLiteOpenHelper {
      * Default constructor
      * @param context context to associate with
      */
-    public DatabaseOpener(Context context) {
+    private DatabaseOpener(Context context) {
         super(context, DATA_BASE_FILE_NAME, null, CURRENT_VERSION);
     }
 
@@ -71,17 +71,20 @@ public class DatabaseOpener extends SQLiteOpenHelper {
                 Coin.EDGE + " TEXT," +
                 Coin.MINT + " TEXT," +
                 Coin.MINTAGE + " TEXT," +
-                Coin.DESCRIPTION + " TEXT)"
+                Coin.DESCRIPTION + " TEXT," +
+                Coin.AVERSE_ID + " INTEGER," +
+                Coin.REVERSE_ID + " INTEGER)"
         );
 
-        createSetTables(db);
-    }
+        db.execSQL("CREATE TABLE " + Image.TABLE_NAME + " (" +
+                Image.ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                Image.DATA + " BLOB)"
+        );
 
-    private void createSetTables(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE" + Set.TABLE_NAME + " (" +
-                Set.ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                Set.NAME + " TEXT," +
-                Set.DESCRIPTION + " TEXT)");
+        db.execSQL("CREATE TABLE " + CoinSet.TABLE_NAME + " (" +
+                CoinSet.ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                CoinSet.NAME + " TEXT," +
+                CoinSet.DESCRIPTION + " TEXT)");
 
         db.execSQL("CREATE TABLE " + Link.COIN_TO_SET + " (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -94,9 +97,5 @@ public class DatabaseOpener extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        switch (oldVersion) {
-            case VERSION_1:
-                createSetTables(db);
-        }
     }
 }

@@ -1,7 +1,8 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_add_coin"
           android:title="@string/action_add_coin"
           android:orderInCategory="100"
-          android:showAsAction="ifRoom"
+          app:showAsAction="always"
           android:icon="@android:drawable/ic_menu_add"/>
 </menu>

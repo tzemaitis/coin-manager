@@ -5,25 +5,25 @@ import android.widget.ArrayAdapter;
 import java.util.List;
 
 import lt.tomzmt.coinalbum.data.ListDataSource;
-import lt.tomzmt.coinalbum.data.entity.Set;
+import lt.tomzmt.coinalbum.data.entity.CoinSet;
 
 /**
  * Created by t.zemaitis on 2015.08.19.
  */
-public class SetListActivity extends AbsListActivity<Set> {
+public class SetListActivity extends AbsListActivity<CoinSet> {
 
     @Override
-    protected ListDataSource<Set> createDataSource() {
+    protected ListDataSource<CoinSet> createDataSource() {
         return null;
     }
 
     @Override
-    protected ArrayAdapter<Set> createAdapter(List<Set> items) {
+    protected ArrayAdapter<CoinSet> createAdapter(List<CoinSet> items) {
         return null;
     }
 
     @Override
-    protected void onEntityClick(Set entity) {
+    protected void onEntityClick(CoinSet entity) {
 
     }
 }

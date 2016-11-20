@@ -15,9 +15,5 @@ public interface Entity {
 
     long getId();
 
-    String getTableName();
-
     ContentValues getValues();
-
-    Entity construct(Cursor cursor);
 }

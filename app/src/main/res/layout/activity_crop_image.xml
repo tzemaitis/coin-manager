@@ -6,25 +6,26 @@
 
     <lt.tomzmt.coinalbum.ui.widgets.CropableImageView
         android:id="@+id/imageView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:background="#55FFFFFF"
+        android:layout_above="@+id/buttonBar"
         android:adjustViewBounds="true"
+        android:scaleType="centerCrop"
         app:exampleDimension="24sp"
         app:exampleColor="#33b5e5"
         app:exampleString="Hello, CropableImageView"
         app:exampleDrawable="@android:drawable/ic_menu_add"/>
 
     <LinearLayout
+        android:id="@id/buttonBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/imageView"
         android:layout_alignParentBottom="true"
         android:gravity="center"
         android:paddingTop="5dp"
         android:paddingBottom="10dp"
-        android:background="#000000">
+        android:background="@color/primaryDarker">
 
         <Button
             android:id="@+id/buttonDone"

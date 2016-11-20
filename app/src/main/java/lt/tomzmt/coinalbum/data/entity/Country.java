@@ -33,11 +33,6 @@ public class Country implements Entity {
     }
 
     @Override
-    public String getTableName() {
-        return null;
-    }
-
-    @Override
     public ContentValues getValues() {
         return null;
     }

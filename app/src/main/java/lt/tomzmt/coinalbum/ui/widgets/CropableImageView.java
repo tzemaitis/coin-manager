@@ -70,11 +70,24 @@ public class CropableImageView extends ImageView {
     }
 
     public RectF getTargetRect() {
-        float scaleFactor = Math.min((float)mOriginalImageWidth / (float)getWidth(), (float)mOriginalImageHeight / (float)getHeight());
+        float widthScale = (float)mOriginalImageWidth / (float)getWidth();
+        float heightScale = (float)mOriginalImageHeight / (float)getHeight();
+
         Matrix matrix = new Matrix();
-        matrix.setScale(scaleFactor, scaleFactor);
+        if (widthScale < heightScale) {
+            matrix.setScale(widthScale, widthScale);
+            int translation = Math.round((mOriginalImageHeight - getHeight() * widthScale) / 2);
+            matrix.postTranslate(0, translation);
+        } else if (heightScale < widthScale) {
+            matrix.setScale(heightScale, heightScale);
+            int translation = Math.round((mOriginalImageWidth - getWidth() * heightScale) / 2);
+            matrix.postTranslate(translation, 0);
+        }
+
         RectF resultRect = new RectF();
         matrix.mapRect(resultRect, mTargetBounds);
+
+        Matrix m = getImageMatrix();
         return resultRect;
     }
 

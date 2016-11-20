@@ -8,13 +8,13 @@ import android.os.Parcelable;
 import lt.tomzmt.coinalbum.data.CursorReader;
 
 /**
- * Set specifies the group of coins related to etch other, for example all coins circulated
+ * CoinSet specifies the group of coins related to etch other, for example all coins circulated
  * at the same time and depend to the same currency.
  * Created by t.zemaitis on 2015.08.05.
  */
-public class Set implements Entity, Parcelable {
+public class CoinSet implements Entity, Parcelable {
 
-    public static final String TABLE_NAME = "set";
+    public static final String TABLE_NAME = CoinSet.class.getSimpleName();
 
     public static final String NAME = "name";
 
@@ -26,28 +26,28 @@ public class Set implements Entity, Parcelable {
 
     private String mDescription;
 
-    public static Creator<Set> CREATOR = new Creator<Set>() {
+    public static Creator<CoinSet> CREATOR = new Creator<CoinSet>() {
         @Override
-        public Set createFromParcel(Parcel source) {
-            return new Set(source);
+        public CoinSet createFromParcel(Parcel source) {
+            return new CoinSet(source);
         }
 
         @Override
-        public Set[] newArray(int size) {
-            return new Set[size];
+        public CoinSet[] newArray(int size) {
+            return new CoinSet[size];
         }
     };
 
-    public Set() {
+    public CoinSet() {
     }
 
-    public Set(Parcel in) {
+    public CoinSet(Parcel in) {
         mId = in.readLong();
         mName = in.readString();
         mDescription = in.readString();
     }
 
-    public Set(Cursor cursor) {
+    public CoinSet(Cursor cursor) {
         CursorReader reader = new CursorReader(cursor);
         mId = reader.readLong(ID);
         mName = reader.readString(NAME);

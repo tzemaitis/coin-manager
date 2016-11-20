@@ -37,6 +37,10 @@ public class Coin implements Entity, Parcelable {
 
     public static final String DESCRIPTION = "description";
 
+    public static final String AVERSE_ID = "everse_id";
+
+    public static final String REVERSE_ID = "reverse_id";
+
     private long mId = NOT_SET;
 
     private String mName;
@@ -60,6 +64,10 @@ public class Coin implements Entity, Parcelable {
     private String mMintage;
 
     private String mDescription;
+
+    private long mAverseId = NOT_SET;
+
+    private long mReverseId = NOT_SET;
 
     public static Creator<Coin> CREATOR = new Creator<Coin>() {
         @Override
@@ -89,6 +97,8 @@ public class Coin implements Entity, Parcelable {
         mMint = in.readString();
         mMintage = in.readString();
         mDescription = in.readString();
+        mAverseId = in.readLong();
+        mReverseId = in.readLong();
     }
 
     public Coin(Cursor cursor) {
@@ -105,6 +115,8 @@ public class Coin implements Entity, Parcelable {
         mMint = reader.readString(MINT);
         mMintage = reader.readString(MINTAGE);
         mDescription = reader.readString(DESCRIPTION);
+        mAverseId = reader.readLong(AVERSE_ID);
+        mReverseId = reader.readLong(REVERSE_ID);
     }
 
     @Override
@@ -130,13 +142,10 @@ public class Coin implements Entity, Parcelable {
         values.put(MINT, mMint);
         values.put(MINTAGE, mMintage);
         values.put(DESCRIPTION, mDescription);
+        values.put(AVERSE_ID, mAverseId);
+        values.put(REVERSE_ID, mReverseId);
 
         return values;
-    }
-
-    @Override
-    public String getTableName() {
-        return TABLE_NAME;
     }
 
     @Override
@@ -158,6 +167,8 @@ public class Coin implements Entity, Parcelable {
         out.writeString(mMint);
         out.writeString(mMintage);
         out.writeString(mDescription);
+        out.writeLong(mAverseId);
+        out.writeLong(mReverseId);
     }
 
     public String getName() {
@@ -250,5 +261,21 @@ public class Coin implements Entity, Parcelable {
 
     public void setDescription(String description) {
         mDescription = description;
+    }
+
+    public long getAverseId() {
+        return mAverseId;
+    }
+
+    public void setAverseId(long averseId) {
+        this.mAverseId = averseId;
+    }
+
+    public long getReverseId() {
+        return mReverseId;
+    }
+
+    public void setReverseId(long reverseId) {
+        this.mReverseId = reverseId;
     }
 }

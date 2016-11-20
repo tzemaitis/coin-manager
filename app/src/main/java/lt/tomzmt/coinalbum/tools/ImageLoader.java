@@ -1,6 +1,5 @@
 package lt.tomzmt.coinalbum.tools;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,7 +15,8 @@ import android.os.AsyncTask.Status;
 
 import lt.tomzmt.coinalbum.R;
 import lt.tomzmt.coinalbum.Tools;
-import lt.tomzmt.coinalbum.data.FileManager;
+import lt.tomzmt.coinalbum.data.DatabaseRepository;
+import lt.tomzmt.coinalbum.data.entity.Image;
 
 /**
  * Class dedicated to load images asynchronously
@@ -24,13 +24,11 @@ import lt.tomzmt.coinalbum.data.FileManager;
  */
 public class ImageLoader {
 
-    static final String TAG = ImageLoader.class.getSimpleName();
-
     private final ThumbnailCache mCache;
 
     private final Queue<LoadTask> mPendingTasks;
 
-    private final FileManager mImageManager;
+    private final DatabaseRepository<Image> mImageManager;
 
     private Bitmap mDefaultImage;
 
@@ -47,7 +45,7 @@ public class ImageLoader {
     public ImageLoader(Context context) {
 
         mCache = new ThumbnailCache(context);
-        mImageManager = new FileManager(context);
+        mImageManager = new DatabaseRepository<>(Image.class);
         mState = State.STOPPED;
 
         mPendingTasks = new LinkedList<>();
@@ -59,18 +57,12 @@ public class ImageLoader {
     }
 
     /**
-     * Returns File manager used by this loader
-     */
-    public FileManager getImageManager() {
-        return mImageManager;
-    }
-
-    /**
      * Requests to load image
      * @param id image identifier
      * @param listener listener to call then image is loaded
      */
-    public void loadImage(long id, ImageLoaderListener listener) {
+    public void
+    loadImage(long id, ImageLoaderListener listener) {
         listener.onSetTag(Long.toString(id));
         Bitmap bmp = mCache.get(id);
         if (bmp != null) {
@@ -146,12 +138,12 @@ public class ImageLoader {
 
         private List<WeakReference<ImageLoaderListener>> mListeners;
 
-        public LoadTask(long id) {
+        LoadTask(long id) {
             mId = id;
             mListeners = new ArrayList<>();
         }
 
-        public void addListener(ImageLoaderListener listener) {
+        void addListener(ImageLoaderListener listener) {
             WeakReference<ImageLoaderListener> ref = new WeakReference<>(listener);
             mListeners.add(ref);
         }
@@ -173,9 +165,9 @@ public class ImageLoader {
         @Override
         protected Bitmap doInBackground(Void... params) {
             Bitmap result = null;
-            File imageFile = mImageManager.getCoinImage(mId, FileManager.AVERSE);
-            if (imageFile.exists()) {
-                result = Tools.readImage(imageFile.getPath(), mImageWidth, mImageHeight);
+            Image image = mImageManager.get(mId);
+            if (image.getData() != null) {
+                result = Tools.decodeImage(image.getData(), mImageWidth, mImageHeight);
             }
             return result;
         }

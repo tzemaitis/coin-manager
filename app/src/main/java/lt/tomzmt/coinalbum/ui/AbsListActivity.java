@@ -1,7 +1,7 @@
 package lt.tomzmt.coinalbum.ui;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -20,32 +20,12 @@ import lt.tomzmt.coinalbum.data.entity.Entity;
  * Abstract activity to display searchable list of entities
  * Created by t.zemaitis on 2015.03.04.
  */
-public abstract class AbsListActivity<T extends Entity> extends Activity implements ListDataSource.ListDataModelObserver<T> {
+public abstract class AbsListActivity<T extends Entity> extends AppCompatActivity implements ListDataSource.ListDataModelObserver<T> {
 
     private ArrayAdapter<T> mListAdapter;
 
     private ListDataSource<T> mListDataSource;
 
-    private TextWatcher mEditListener = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-        @Override
-        public void afterTextChanged(Editable s) {
-            mListDataSource.filter(s.toString());
-        }
-    };
-
-    private AdapterView.OnItemClickListener mOnItemClickListener  = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            T entity = mListAdapter.getItem(position);
-            onEntityClick(entity);
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +33,18 @@ public abstract class AbsListActivity<T extends Entity> extends Activity impleme
         setContentView(getLayoutResourceId());
 
         EditText edit = (EditText)findViewById(R.id.edit_search);
-        edit.addTextChangedListener(mEditListener);
+        edit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mListDataSource.filter(s.toString());
+            }
+        });
 
         mListDataSource = createDataSource();
         mListDataSource.setObserver(this);
@@ -61,7 +52,10 @@ public abstract class AbsListActivity<T extends Entity> extends Activity impleme
         mListAdapter = createAdapter(mListDataSource.getItems());
 
         ListView listView = (ListView)findViewById(R.id.list);
-        listView.setOnItemClickListener(mOnItemClickListener);
+        listView.setOnItemClickListener((AdapterView<?> adapterView, View view, int i, long l) -> {
+            T entity = mListAdapter.getItem(i);
+            onEntityClick(entity);
+        });
         listView.setAdapter(mListAdapter);
     }
 
@@ -72,7 +66,7 @@ public abstract class AbsListActivity<T extends Entity> extends Activity impleme
     }
 
     @Override
-    public void onDataSetChanged(ListDataSource model) {
+    public void onDataSetChanged(ListDataSource<T> model) {
         mListAdapter.notifyDataSetChanged();
     }
 

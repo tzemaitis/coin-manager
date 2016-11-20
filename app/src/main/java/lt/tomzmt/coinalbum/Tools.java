@@ -1,5 +1,8 @@
 package lt.tomzmt.coinalbum;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -22,5 +25,32 @@ public class Tools {
         } else {
             return BitmapFactory.decodeFile(imageFilePath);
         }
+    }
+
+    public static Bitmap decodeImage(final byte[] buffer, final int maxWidth, final int maxHeight) {
+        if (maxWidth != 0 && maxHeight != 0) {
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(buffer, 0, buffer.length, bmOptions);
+
+            int scaleFactor = Math.min(bmOptions.outWidth / maxWidth, bmOptions.outHeight / maxHeight);
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            return BitmapFactory.decodeByteArray(buffer, 0, buffer.length, bmOptions);
+        } else {
+            return BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+        }
+    }
+
+    public static byte[] readFile(String filePath) {
+        byte[] b = null;
+        try {
+            RandomAccessFile f = new RandomAccessFile(filePath, "r");
+            b = new byte[(int)f.length()];
+            f.readFully(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return b;
     }
 }

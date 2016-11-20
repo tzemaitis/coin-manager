@@ -1,11 +1,11 @@
 package lt.tomzmt.coinalbum.ui;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,19 +14,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.io.File;
-
 import lt.tomzmt.coinalbum.R;
 import lt.tomzmt.coinalbum.Tools;
-import lt.tomzmt.coinalbum.data.FileManager;
+import lt.tomzmt.coinalbum.data.DatabaseRepository;
 import lt.tomzmt.coinalbum.data.entity.Coin;
+import lt.tomzmt.coinalbum.data.entity.Entity;
+import lt.tomzmt.coinalbum.data.entity.Image;
 import lt.tomzmt.coinalbum.ui.widgets.FlippingImageView;
 
 /**
  * Activity to display coin details
  * Created by t.zemaitis on 2015.03.22.
  */
-public class CoinDetailsActivity extends Activity {
+public class CoinDetailsActivity extends AppCompatActivity {
 
     static final String TAG = CoinDetailsActivity.class.getSimpleName();
 
@@ -36,11 +36,17 @@ public class CoinDetailsActivity extends Activity {
 
     private Coin mCoin;
 
+    private DatabaseRepository<Image> mImageManager = new DatabaseRepository<>(Image.class);
+
+    private int mPreferredImageSize;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coin_details);
         setResult(RESULT_CANCELED);
+
+        mPreferredImageSize = getResources().getDimensionPixelSize(R.dimen.details_image_height);
 
         mCoin = getIntent().getParcelableExtra(EXTRA_COIN);
         if (mCoin == null) {
@@ -58,7 +64,7 @@ public class CoinDetailsActivity extends Activity {
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, @NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_edit_coin: {
                 Intent intent = new Intent(this, CoinEditActivity.class);
@@ -66,7 +72,7 @@ public class CoinDetailsActivity extends Activity {
                 startActivityForResult(intent, REQUEST_EDIT);
             }
             default: {
-                return super.onMenuItemSelected(featureId, item);
+                return super.onOptionsItemSelected(item);
             }
         }
     }
@@ -113,7 +119,9 @@ public class CoinDetailsActivity extends Activity {
         container = (ViewGroup)findViewById(R.id.container_mintage);
         setFieldValue(container, mCoin.getMintage());
 
-        loadImage();
+        FlippingImageView imageView = (FlippingImageView)findViewById(R.id.image);
+        imageView.setForegroundBitmap(loadImage(mCoin.getAverseId()));
+        imageView.setBackgroundBitmap(loadImage(mCoin.getReverseId()));
     }
 
     private void setFieldValue(ViewGroup field, String value) {
@@ -124,28 +132,14 @@ public class CoinDetailsActivity extends Activity {
         }
     }
 
-    private void loadImage() {
-        int size = getResources().getDimensionPixelSize(R.dimen.details_image_height);
-
-        FileManager manager = new FileManager(getApplicationContext());
-        File averseFile = manager.getCoinImage(mCoin.getId(), FileManager.AVERSE);
-        Bitmap averseBitmap;
-        if (averseFile.exists()) {
-            averseBitmap = Tools.readImage(averseFile.getPath(), size, size);
+    private Bitmap loadImage(long id) {
+        Bitmap bitmap;
+        if (id != Entity.NOT_SET) {
+            Image image = mImageManager.get(id);
+            bitmap = Tools.decodeImage(image.getData(), mPreferredImageSize, mPreferredImageSize);
         } else {
-            averseBitmap = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_gallery);
+            bitmap = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_gallery);
         }
-
-        File reverseFile = manager.getCoinImage(mCoin.getId(), FileManager.REVERSE);
-        Bitmap reverseBitmap;
-        if (reverseFile.exists()) {
-            reverseBitmap = Tools.readImage(reverseFile.getPath(), size, size);
-        } else {
-            reverseBitmap = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_gallery);
-        }
-
-        FlippingImageView imageView = (FlippingImageView)findViewById(R.id.image);
-        imageView.setForegroundBitmap(averseBitmap);
-        imageView.setBackgroundBitmap(reverseBitmap);
+        return bitmap;
     }
 }

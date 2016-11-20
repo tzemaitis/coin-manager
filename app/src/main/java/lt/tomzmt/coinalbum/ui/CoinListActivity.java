@@ -3,6 +3,7 @@ package lt.tomzmt.coinalbum.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +37,13 @@ public class CoinListActivity extends AbsListActivity<Coin> {
     private ImageLoader mImageLoader;
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        findViewById(R.id.btn_add_coint).setOnClickListener((View v) -> startNewCoin());
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         mImageLoader.onStart();
@@ -55,14 +63,13 @@ public class CoinListActivity extends AbsListActivity<Coin> {
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, @NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_coin: {
-                Intent intent = new Intent(this, CoinEditActivity.class);
-                startActivityForResult(intent, REQUEST_DETAILS);
+                startNewCoin();
             }
             default: {
-                return super.onMenuItemSelected(featureId, item);
+                return super.onOptionsItemSelected(item);
             }
         }
     }
@@ -89,7 +96,7 @@ public class CoinListActivity extends AbsListActivity<Coin> {
     }
 
     @Override
-    public void onDataSetChanged(ListDataSource model) {
+    public void onDataSetChanged(ListDataSource<Coin> model) {
         super.onDataSetChanged(model);
 
         TextView footer = (TextView)findViewById(R.id.text_list_footer);
@@ -122,6 +129,11 @@ public class CoinListActivity extends AbsListActivity<Coin> {
         return R.layout.activity_coin_list;
     }
 
+    private void startNewCoin() {
+        Intent intent = new Intent(this, CoinEditActivity.class);
+        startActivityForResult(intent, REQUEST_DETAILS);
+    }
+
     private static class CoinListAdapter extends ArrayAdapter<Coin> {
 
         private final ImageLoader mImageLoader;
@@ -131,6 +143,7 @@ public class CoinListActivity extends AbsListActivity<Coin> {
             mImageLoader = loader;
         }
 
+        @NonNull
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
@@ -140,7 +153,7 @@ public class CoinListActivity extends AbsListActivity<Coin> {
             Coin coin = getItem(position);
 
             LoaderListeningImageView imageView = (LoaderListeningImageView) convertView.findViewById(R.id.image);
-            mImageLoader.loadImage(coin.getId(), imageView);
+            mImageLoader.loadImage(coin.getAverseId(), imageView);
 
             TextView name = (TextView)convertView.findViewById(R.id.name);
             name.setText(coin.getDenomination() + " " + coin.getName() + ", " + coin.getYears() +  ", " + coin.getCountry());

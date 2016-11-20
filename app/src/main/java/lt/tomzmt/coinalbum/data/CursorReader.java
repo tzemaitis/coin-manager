@@ -24,6 +24,11 @@ public class CursorReader {
         return mCursor.getString(index);
     }
 
+    public byte[] readBlob(String name) {
+        int index = getIndex(name);
+        return mCursor.getBlob(index);
+    }
+
     private int getIndex(String name) {
         int index = mCursor.getColumnIndex(name);
         if (index == -1) {

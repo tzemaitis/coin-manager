@@ -1,14 +1,13 @@
 package lt.tomzmt.coinalbum.ui;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,15 +26,16 @@ import java.util.Calendar;
 import lt.tomzmt.coinalbum.R;
 import lt.tomzmt.coinalbum.Tools;
 import lt.tomzmt.coinalbum.data.CoinRepository;
-import lt.tomzmt.coinalbum.data.FileManager;
+import lt.tomzmt.coinalbum.data.DatabaseRepository;
 import lt.tomzmt.coinalbum.data.entity.Coin;
 import lt.tomzmt.coinalbum.data.entity.Entity;
+import lt.tomzmt.coinalbum.data.entity.Image;
 
 /**
  * Activity to perform coin editing
  * Created by t.zemaitis on 2015.03.06.
  */
-public class CoinEditActivity extends Activity {
+public class CoinEditActivity extends AppCompatActivity {
 
     static final String TAG = CoinEditActivity.class.getSimpleName();
 
@@ -55,7 +55,8 @@ public class CoinEditActivity extends Activity {
     private File mAverseFile = null;
     private File mReverseFile = null;
 
-    private FileManager mFileManager = null;
+    private DatabaseRepository<Image> mImageManager = null;
+    private CoinRepository mCoinRepository = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +64,13 @@ public class CoinEditActivity extends Activity {
         setContentView(R.layout.activity_edit_coin);
 
         mViewAverse = (ImageView)findViewById(R.id.imageAverse);
-        mViewAverse.setOnClickListener(mOnTakeAverseClickListener);
+        mViewAverse.setOnClickListener((View v) -> dispatchTakePictureIntent(REQUEST_CAPTURE_AVERSE, mAverseFile));
 
         mViewReverse = (ImageView)findViewById(R.id.imageReverse);
-        mViewReverse.setOnClickListener(mOnTakeReverseClickListener);
+        mViewReverse.setOnClickListener((View v) -> dispatchTakePictureIntent(REQUEST_CAPTURE_REVERSE, mReverseFile));
 
         mViewYears = (TextView)findViewById(R.id.years);
-        mViewYears.setOnClickListener(mOnYearsClickListener);
+        mViewYears.setOnClickListener((View v) -> showYearsChooser());
 
         String[] countries = getResources().getStringArray(R.array.countries);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, countries);
@@ -79,11 +80,12 @@ public class CoinEditActivity extends Activity {
         mAverseFile = new File(getExternalFilesDir(null), "averse_image.jpg");
         mReverseFile = new File(getExternalFilesDir(null), "reverse_image.jpg");
 
-        mFileManager = new FileManager(getApplicationContext());
+        mImageManager = new DatabaseRepository<>(Image.class);
+        mCoinRepository = new CoinRepository();
 
         mCoin = getIntent().getParcelableExtra(EXTRA_COIN);
 
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             if (mCoin != null) {
@@ -97,7 +99,18 @@ public class CoinEditActivity extends Activity {
     }
 
     @Override
-    public boolean onMenuItemSelected(final int featureId, @NonNull MenuItem item) {
+    protected void onDestroy() {
+        if (mAverseFile.exists()) {
+            mAverseFile.delete();
+        }
+        if (mReverseFile.exists()) {
+            mReverseFile.delete();
+        }
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home: {
                 saveData();
@@ -105,9 +118,10 @@ public class CoinEditActivity extends Activity {
                 intent.putExtra(EXTRA_COIN, mCoin);
                 setResult(RESULT_OK, intent);
                 finish();
+                return true;
             }
             default: {
-                return super.onMenuItemSelected(featureId, item);
+                return  super.onOptionsItemSelected(item);
             }
         }
     }
@@ -118,32 +132,24 @@ public class CoinEditActivity extends Activity {
             case REQUEST_CAPTURE_AVERSE: {
                 if (resultCode == RESULT_OK) {
                     dispatchCropPicture(REQUEST_CROP_AVERSE, mAverseFile);
-                } else {
-                    mAverseFile.delete();
                 }
                 break;
             }
             case REQUEST_CAPTURE_REVERSE: {
                 if (resultCode == RESULT_OK) {
                     dispatchCropPicture(REQUEST_CROP_REVERSE, mReverseFile);
-                } else {
-                    mReverseFile.delete();
                 }
                 break;
             }
             case REQUEST_CROP_AVERSE: {
                 if (resultCode == RESULT_OK) {
                     loadImage(mAverseFile, mViewAverse);
-                } else {
-                    mAverseFile.delete();
                 }
                 break;
             }
             case REQUEST_CROP_REVERSE: {
                 if (resultCode == RESULT_OK) {
                     loadImage(mReverseFile, mViewReverse);
-                } else {
-                    mReverseFile.delete();
                 }
                 break;
             }
@@ -154,12 +160,8 @@ public class CoinEditActivity extends Activity {
     }
 
     private void loadData() {
-
-        File file = mFileManager.getCoinImage(mCoin.getId(), FileManager.AVERSE);
-        loadImage(file, mViewAverse);
-
-        file = mFileManager.getCoinImage(mCoin.getId(), FileManager.REVERSE);
-        loadImage(file, mViewReverse);
+        loadImage(mCoin.getAverseId(), mViewAverse);
+        loadImage(mCoin.getReverseId(), mViewReverse);
 
         TextView view = (TextView)findViewById(R.id.name);
         view.setText(mCoin.getDenomination() + " " + mCoin.getName());
@@ -182,17 +184,25 @@ public class CoinEditActivity extends Activity {
         }
     }
 
+    private void loadImage(long id, ImageView imageView) {
+        Image image = mImageManager.get(id);
+        byte[] imageData = image.getData();
+        if (imageData != null) {
+            Bitmap imageBitmap = Tools.decodeImage(imageData,
+                    imageView.getWidth(), imageView.getHeight());
+            imageView.setImageBitmap(imageBitmap);
+        }
+    }
+
     private void saveData() {
         TextView view = (TextView)findViewById(R.id.name);
         String name = view.getText().toString();
-        if (name != null) {
-            int index = name.indexOf(' ');
-            if (index != -1) {
-                mCoin.setDenomination(name.substring(0, index));
-                mCoin.setName(name.substring(index + 1));
-            } else {
-                mCoin.setName(name);
-            }
+        int index = name.indexOf(' ');
+        if (index != -1) {
+            mCoin.setDenomination(name.substring(0, index));
+            mCoin.setName(name.substring(index + 1));
+        } else {
+            mCoin.setName(name);
         }
 
         view = (TextView)findViewById(R.id.country);
@@ -204,35 +214,47 @@ public class CoinEditActivity extends Activity {
         view = (TextView)findViewById(R.id.description);
         mCoin.setDescription(view.getText().toString());
 
-        CoinRepository repository = new CoinRepository();
+        mCoin.setAverseId(saveImage(mAverseFile, mCoin.getAverseId()));
+        mCoin.setReverseId(saveImage(mReverseFile, mCoin.getReverseId()));
+
         if (mCoin.getId() == Entity.NOT_SET) {
-            long id = repository.add(mCoin);
+            long id = mCoinRepository.add(mCoin);
             mCoin.setId(id);
         } else {
-            repository.update(mCoin);
+            mCoinRepository.update(mCoin);
         }
+    }
 
-        if (mAverseFile.exists()) {
-            mFileManager.addCoinImage(mCoin.getId(), mAverseFile, FileManager.AVERSE);
-            mAverseFile.delete();
-        }
+    private long saveImage(File file, long id) {
+        if (file.exists()) {
+            byte[] data = Tools.readFile(file.getAbsolutePath());
+            Image image = new Image();
+            image.setId(id);
+            image.setData(data);
 
-        if (mReverseFile.exists()) {
-            mFileManager.addCoinImage(mCoin.getId(), mReverseFile, FileManager.REVERSE);
-            mReverseFile.delete();
+            if (image.getId() == Entity.NOT_SET) {
+                id = mImageManager.add(image);
+            } else {
+                mImageManager.update(image);
+            }
+            final boolean delete = file.delete();
+            if (!delete) {
+                Toast.makeText(this, R.string.error_failed_to_delete_file, Toast.LENGTH_SHORT).show();
+            }
         }
+        return id;
     }
 
     private void dispatchTakePictureIntent(int requestId, File outputFile) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             try {
-                if (outputFile.createNewFile()) {
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outputFile));
-                    startActivityForResult(takePictureIntent, requestId);
-                } else {
-                    throw new IOException("Failed to create file");
+                if (outputFile.exists()) {
+                    outputFile.delete();
                 }
+                outputFile.createNewFile();
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outputFile));
+                startActivityForResult(takePictureIntent, requestId);
             } catch (IOException e) {
                 Toast.makeText(this, R.string.error_failed_to_create_file, Toast.LENGTH_SHORT).show();
             }
@@ -245,53 +267,32 @@ public class CoinEditActivity extends Activity {
         startActivityForResult(cropPictureIntent, requestId);
     }
 
-    private View.OnClickListener mOnTakeAverseClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            dispatchTakePictureIntent(REQUEST_CAPTURE_AVERSE, mAverseFile);
+    private void showYearsChooser() {
+        int currentYears = Calendar.getInstance().get(Calendar.YEAR);
+        int currentSelection = currentYears;
+        String yearsString = mViewYears.getText().toString();
+        if (!TextUtils.isEmpty(yearsString)) {
+            try {
+                currentSelection = Integer.valueOf(yearsString);
+            } catch (NumberFormatException e) {/* IGNORE */}
         }
-    };
 
-    private View.OnClickListener mOnTakeReverseClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            dispatchTakePictureIntent(REQUEST_CAPTURE_REVERSE, mReverseFile);
-        }
-    };
+        final Dialog d = new Dialog(CoinEditActivity.this);
+        d.setTitle(R.string.select_years);
+        d.setContentView(R.layout.dialog_years_picker);
 
-    private View.OnClickListener mOnYearsClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.pickerNumber);
+        np.setMinValue(1800);
+        np.setMaxValue(currentYears);
+        np.setValue(currentSelection);
+        np.setWrapSelectorWheel(false);
 
-            int currentYears = Calendar.getInstance().get(Calendar.YEAR);
-            int currentSelection = currentYears;
-            String yearsString = mViewYears.getText().toString();
-            if (!TextUtils.isEmpty(yearsString)) {
-                try {
-                    currentSelection = Integer.valueOf(yearsString);
-                } catch (NumberFormatException e) {/* IGNORE */}
-            }
+        Button b1 = (Button) d.findViewById(R.id.buttonSet);
+        b1.setOnClickListener((View) -> {
+            mViewYears.setText(String.valueOf(np.getValue()));
+            d.dismiss();
+        });
 
-            final Dialog d = new Dialog(CoinEditActivity.this);
-            d.setTitle(R.string.select_years);
-            d.setContentView(R.layout.dialog_years_picker);
-
-            final NumberPicker np = (NumberPicker) d.findViewById(R.id.pickerNumber);
-            np.setMinValue(1800);
-            np.setMaxValue(currentYears);
-            np.setValue(currentSelection);
-            np.setWrapSelectorWheel(false);
-
-            Button b1 = (Button) d.findViewById(R.id.buttonSet);
-            b1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mViewYears.setText(String.valueOf(np.getValue()));
-                    d.dismiss();
-                }
-            });
-
-            d.show();
-        }
-    };
+        d.show();
+    }
 }
